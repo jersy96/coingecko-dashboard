@@ -13,3 +13,13 @@ module ActiveSupport
     # Add more helper methods to be used by all tests here...
   end
 end
+
+Dir[Rails.root.join("test/support/**/*.rb")].each { |support_file| require support_file }
+
+module CoinGeckoClientTestDataSource
+  def default_http_data_source
+    FakeHttpDataSource.new
+  end
+end
+
+MarketFeed::CoinGeckoClient.singleton_class.prepend(CoinGeckoClientTestDataSource)

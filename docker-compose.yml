@@ -9,6 +9,7 @@ services:
       - "3000:3000"
     environment:
       RAILS_ENV: development
+      COINGECKO_API_KEY: ${COINGECKO_API_KEY:-}
 
 volumes:
   bundle_cache:

@@ -1,0 +1,21 @@
+<dialog data-modal-target="dialog" class="m-auto w-full max-w-sm rounded-lg border border-slate-200 p-0 shadow-xl backdrop:bg-slate-900/50">
+  <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+    <p class="text-base font-semibold text-slate-900">Switch user</p>
+    <button
+      type="button"
+      data-action="modal#close"
+      aria-label="Close"
+      class="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-900"
+    >
+      &times;
+    </button>
+  </div>
+
+  <%= form_with url: access_token_path, method: :post, class: "flex flex-col gap-4 px-6 py-5" do %>
+    <label class="text-sm font-medium text-slate-700" for="user_id">Choose a user</label>
+    <%= select_tag :user_id,
+          options_from_collection_for_select(@available_users, :id, ->(user) { "#{user.email} (#{user.role})" }, Current.user&.id),
+          class: "w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900" %>
+    <%= submit_tag "Switch user", class: "w-full cursor-pointer rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2" %>
+  <% end %>
+</dialog>

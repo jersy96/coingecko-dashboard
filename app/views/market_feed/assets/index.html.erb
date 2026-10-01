@@ -1,0 +1,11 @@
+<% if Current.user %>
+  <h1 class="text-2xl font-semibold text-slate-900">Welcome back</h1>
+  <p class="mt-2 text-sm text-slate-500">You are signed in as <%= Current.user.email %>.</p>
+<% else %>
+  <h1 class="text-2xl font-semibold text-slate-900">Welcome</h1>
+  <p class="mt-2 text-sm text-slate-500">Use the sidebar to sign in.</p>
+<% end %>
+
+<div class="mt-10">
+  <%= render "asset_table", market_feed_assets: @market_feed_assets, selected_currencies: @selected_currencies, supported_currencies: @supported_currencies, watched_asset_ids: @watched_asset_ids, threshold_statuses: @threshold_statuses %>
+</div>

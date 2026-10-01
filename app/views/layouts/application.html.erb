@@ -1,29 +1,72 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "App" %></title>
+    <title><%= content_for(:title) || "Financial Dashboard" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="App">
+    <meta name="application-name" content="Financial Dashboard">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
     <%= yield :head %>
 
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="min-h-screen bg-slate-50 text-slate-900" data-controller="modal">
+    <div class="flex min-h-screen flex-col md:flex-row">
+      <aside class="flex w-full flex-col justify-between border-b border-slate-200 bg-white p-6 md:h-screen md:w-64 md:border-b-0 md:border-r">
+        <div>
+          <p class="text-lg font-semibold tracking-tight text-slate-900">Financial Dashboard</p>
+
+          <div class="mt-8">
+            <% if Current.user %>
+              <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Signed in as</p>
+              <p id="current-user-email" class="mt-1 truncate text-sm font-medium text-slate-700"><%= Current.user.email %></p>
+              <p id="current-user-role" class="mt-1 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-600"><%= Current.user.role %></p>
+            <% else %>
+              <p class="text-sm text-slate-500">Not signed in</p>
+            <% end %>
+          </div>
+
+          <% if Current.user %>
+            <nav class="mt-8 flex flex-col gap-1">
+              <%= link_to "Market Feed", root_path, class: "rounded-md px-3 py-2 text-sm font-medium #{current_page?(root_path) ? "bg-slate-100 text-slate-900" : "text-slate-600 hover:bg-slate-50"}" %>
+              <% if allowed_to?(:manage_own_watchlist) %>
+                <%= link_to "Watchlist", watchlist_items_path, class: "rounded-md px-3 py-2 text-sm font-medium #{current_page?(watchlist_items_path) ? "bg-slate-100 text-slate-900" : "text-slate-600 hover:bg-slate-50"}" %>
+              <% end %>
+              <% if allowed_to?(:manage_thresholds) %>
+                <%= link_to "Thresholds", thresholds_path, class: "rounded-md px-3 py-2 text-sm font-medium #{current_page?(thresholds_path) ? "bg-slate-100 text-slate-900" : "text-slate-600 hover:bg-slate-50"}" %>
+              <% end %>
+              <% if allowed_to?(:view_audit_log) %>
+                <%= link_to "Activity log", activity_entries_path, class: "rounded-md px-3 py-2 text-sm font-medium #{current_page?(activity_entries_path) ? "bg-slate-100 text-slate-900" : "text-slate-600 hover:bg-slate-50"}" %>
+              <% end %>
+            </nav>
+          <% end %>
+        </div>
+
+        <button
+          type="button"
+          data-action="modal#open"
+          class="mt-6 w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2"
+        >
+          Switch user
+        </button>
+      </aside>
+
+      <main class="flex-1 p-6 md:p-10">
+        <%= yield %>
+      </main>
+    </div>
+
+    <%= render "shared/user_picker_modal" %>
+    <%= render "shared/toast" %>
   </body>
 </html>

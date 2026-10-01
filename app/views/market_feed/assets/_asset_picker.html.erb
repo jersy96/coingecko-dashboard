@@ -1,0 +1,35 @@
+<%
+  asset_picker_labels = market_feed_assets.each_with_object({}) do |asset, labels|
+    labels[asset.id] = "#{asset.name} (#{asset.symbol})"
+  end
+  selected_asset_ids = market_feed_assets.map(&:id)
+%>
+
+<div
+  data-controller="asset-picker"
+  data-asset-picker-selected-value="<%= selected_asset_ids.to_json %>"
+  data-asset-picker-labels-value="<%= asset_picker_labels.to_json %>"
+  data-asset-picker-url-value="<%= asset_catalog_path %>"
+>
+  <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Assets</p>
+
+  <div data-asset-picker-target="chips" class="mt-3 flex flex-wrap gap-2"></div>
+  <div data-asset-picker-target="hiddenFields" class="hidden"></div>
+
+  <div class="relative mt-3">
+    <input
+      type="search"
+      placeholder="Search assets"
+      autocomplete="off"
+      data-asset-picker-target="query"
+      data-action="input->asset-picker#search focus->asset-picker#openResults blur->asset-picker#closeResults"
+      class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
+    >
+
+    <ul
+      data-asset-picker-target="results"
+      class="absolute left-0 right-0 top-full z-20 mt-1 hidden max-h-56 divide-y divide-slate-100 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg"
+    ></ul>
+  </div>
+
+</div>

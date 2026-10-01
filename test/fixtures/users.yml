@@ -1,0 +1,11 @@
+viewer:
+  email: viewer@example.com
+  role: 0
+
+trader:
+  email: trader@example.com
+  role: 1
+
+admin:
+  email: admin@example.com
+  role: 2

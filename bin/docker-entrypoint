@@ -1,12 +1,10 @@
 #!/bin/bash -e
 
-# Remove a stale server PID file left behind by a previous container run,
-# so a restart does not fail with "server already running".
 rm -f /rails/tmp/pids/server.pid
 
-# If running the rails server then create or migrate existing database
 if [[ "$*" == *"./bin/rails server"* ]]; then
   ./bin/rails db:prepare
+  ./bin/rails tailwindcss:build
 fi
 
 exec "${@}"
