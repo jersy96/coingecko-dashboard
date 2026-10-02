@@ -1,3 +1,5 @@
+require_relative "fake_http_data_source"
+
 require "ostruct"
 
 class RateLimitedHttpDataSource < FakeHttpDataSource

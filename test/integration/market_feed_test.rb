@@ -56,6 +56,19 @@ class MarketFeedTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "it caps the requested assets and currencies so one page cannot flood the provider" do
+    many_assets = Array.new(30) { |index| "asset-#{index}" }
+    many_currencies = Array.new(30) { |index| "currency-#{index}" }
+
+    get root_path, params: { asset_ids: many_assets, currencies: many_currencies }
+
+    assert_response :success
+    assert_operator css_select("tbody tr").size, :<=, MarketFeed::AssetIndex::MAX_ASSETS
+    assert_operator css_select("thead th[data-market-feed-target=conversionColumn]").size,
+                    :<=,
+                    MarketFeed::AssetIndex::MAX_CURRENCIES
+  end
+
   test "the requested currencies drive the conversion columns" do
     get root_path, params: { currencies: [ "jpy" ] }
 

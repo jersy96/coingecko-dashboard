@@ -1,8 +1,11 @@
 import { Controller } from "@hotwired/stimulus"
 import { applyChipOverflow, observeChipOverflow } from "controllers/chip_overflow"
+import { announce } from "controllers/toast_message"
 
 const TOP_ENTRIES_DELAY = 500
 const SEARCH_DELAY = 2000
+const MAX_ASSETS = 10
+const MAX_ASSETS_MESSAGE = `You can compare up to ${MAX_ASSETS} assets at a time. Remove one to add another.`
 
 export default class extends Controller {
   static targets = ["query", "results", "chips", "chipsPanel", "hiddenFields", "expandToggle"]
@@ -115,6 +118,8 @@ export default class extends Controller {
     if (this.selectedValue.includes(assetId)) {
       this.selectedValue = this.selectedValue.filter((candidate) => candidate !== assetId)
     } else {
+      if (this.selectedValue.length >= MAX_ASSETS) return announce(MAX_ASSETS_MESSAGE)
+
       this.selectedValue = [...this.selectedValue, assetId]
     }
 

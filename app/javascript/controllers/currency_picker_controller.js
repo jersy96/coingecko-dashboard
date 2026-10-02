@@ -1,5 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
 import { applyChipOverflow, observeChipOverflow } from "controllers/chip_overflow"
+import { announce } from "controllers/toast_message"
+
+const MAX_CURRENCIES = 10
+const MAX_CURRENCIES_MESSAGE = `You can compare up to ${MAX_CURRENCIES} currencies at a time. Remove one to add another.`
 
 export default class extends Controller {
   static targets = ["query", "results", "chips", "chipsPanel", "hiddenFields", "expandToggle"]
@@ -55,6 +59,8 @@ export default class extends Controller {
     if (this.selectedValue.includes(currency)) {
       this.selectedValue = this.selectedValue.filter((candidate) => candidate !== currency)
     } else {
+      if (this.selectedValue.length >= MAX_CURRENCIES) return announce(MAX_CURRENCIES_MESSAGE)
+
       this.selectedValue = [...this.selectedValue, currency]
     }
 

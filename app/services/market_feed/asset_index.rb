@@ -6,6 +6,8 @@ module MarketFeed
     DEFAULT_CURRENCIES = %w[usd eur gbp].freeze
     HISTORY_DAYS = 7
     PRICES_TTL_SECONDS = 60
+    MAX_ASSETS = 10
+    MAX_CURRENCIES = 10
 
     def initialize(
       coin_gecko_client: MarketFeed::CoinGeckoClient.new,
@@ -83,9 +85,9 @@ module MarketFeed
     end
 
     def resolve_asset_ids(asset_ids, watched_asset_ids)
-      return Array(asset_ids).reject(&:blank?) if asset_ids.present?
+      return Array(asset_ids).reject(&:blank?).first(MAX_ASSETS) if asset_ids.present?
 
-      watched_asset_ids.presence || DEFAULT_ASSET_IDS
+      (watched_asset_ids.presence || DEFAULT_ASSET_IDS).first(MAX_ASSETS)
     end
 
     def watchlist_asset_ids(user)
@@ -100,7 +102,7 @@ module MarketFeed
     def resolve_currencies(currencies)
       return DEFAULT_CURRENCIES if currencies.blank?
 
-      ([ MarketFeed::Asset::BASE_CURRENCY ] + Array(currencies).reject(&:blank?)).uniq
+      ([ MarketFeed::Asset::BASE_CURRENCY ] + Array(currencies).reject(&:blank?)).uniq.first(MAX_CURRENCIES)
     end
 
     def build_assets(market_entries, conversion_rate_entries, currencies, watched_asset_ids, selected_asset_id)
