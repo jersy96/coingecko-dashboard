@@ -6,7 +6,8 @@ module MarketFeed
       asset_index_result = MarketFeed::AssetIndex.new.fetch(
         asset_ids: params[:asset_ids],
         currencies: params[:currencies],
-        user: watchlist_owner
+        user: watchlist_owner,
+        selected_asset_id: params[:selected_asset_id]
       )
       report_failure(asset_index_result) if asset_index_result.failure?
 

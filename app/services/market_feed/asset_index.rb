@@ -19,7 +19,7 @@ module MarketFeed
       @threshold_repository = threshold_repository
     end
 
-    def fetch(asset_ids: nil, currencies: nil, user: nil)
+    def fetch(asset_ids: nil, currencies: nil, user: nil, selected_asset_id: nil)
       watched_asset_ids = watchlist_asset_ids(user)
       requested_asset_ids = resolve_asset_ids(asset_ids, watched_asset_ids)
       requested_currencies = resolve_currencies(currencies)
@@ -30,7 +30,11 @@ module MarketFeed
       conversion_rates = fetch_simple_prices(requested_asset_ids, requested_currencies)
       return conversion_rates if conversion_rates.failure?
 
-      build_assets(markets.data, conversion_rates.data, requested_currencies, watched_asset_ids)
+      build_assets(markets.data, conversion_rates.data, requested_currencies, watched_asset_ids, selected_asset_id)
+    end
+
+    def fetch_history(asset_id:)
+      fetch_price_history(asset_id)
     end
 
     private
@@ -86,9 +90,16 @@ module MarketFeed
       ([ MarketFeed::Asset::BASE_CURRENCY ] + Array(currencies).reject(&:blank?)).uniq
     end
 
-    def build_assets(market_entries, conversion_rate_entries, currencies, watched_asset_ids)
+    def build_assets(market_entries, conversion_rate_entries, currencies, watched_asset_ids, selected_asset_id)
+      charted_asset_id = resolve_selected_asset_id(market_entries, selected_asset_id)
+
       assets = market_entries.map do |market_entry|
-        asset = build_asset(market_entry, conversion_rate_entries[market_entry["id"]], currencies)
+        asset = build_asset(
+          market_entry,
+          conversion_rate_entries[market_entry["id"]],
+          currencies,
+          market_entry["id"] == charted_asset_id
+        )
         return asset if asset.failure?
 
         asset.data
@@ -125,8 +136,14 @@ module MarketFeed
       assets.first.conversion_rates.map(&:currency)
     end
 
-    def build_asset(market_entry, conversion_rate_entry, currencies)
-      price_history = fetch_price_history(market_entry["id"])
+    def resolve_selected_asset_id(market_entries, selected_asset_id)
+      return selected_asset_id if market_entries.any? { |market_entry| market_entry["id"] == selected_asset_id }
+
+      market_entries.first&.fetch("id", nil)
+    end
+
+    def build_asset(market_entry, conversion_rate_entry, currencies, charted)
+      price_history = charted ? fetch_price_history(market_entry["id"]) : Result.success([])
       return price_history if price_history.failure?
 
       Result.success(

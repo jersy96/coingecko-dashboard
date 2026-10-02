@@ -7,6 +7,8 @@ Rails.application.routes.draw do
 
   get "asset_catalog" => "market_feed/asset_catalog#index"
 
+  get "asset_history/:id" => "market_feed/asset_history#show", as: :asset_history
+
   resources :watchlist_items, only: [ :index, :create, :destroy ], controller: "market_feed/watchlist_items"
 
   resources :thresholds, only: [ :index, :update ], controller: "market_feed/thresholds"

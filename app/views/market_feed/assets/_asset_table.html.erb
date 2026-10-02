@@ -9,12 +9,15 @@
       end
     }
   end
+
+  charted_asset = market_feed_assets.find { |asset| asset.price_history.present? } || market_feed_assets.first
 %>
 
 <section
   data-controller="market-feed"
   data-market-feed-assets-value="<%= market_feed_chart_assets.to_json %>"
-  data-market-feed-selected-asset-id-value="<%= market_feed_assets.first&.id %>"
+  data-market-feed-selected-asset-id-value="<%= charted_asset&.id %>"
+  data-market-feed-history-url-value="<%= asset_history_path(id: "ASSET_ID") %>"
 >
   <h2 class="text-xl font-semibold text-slate-900">Market Feed</h2>
   <p class="mt-1 text-sm text-slate-500">Live crypto asset metrics from CoinGecko.</p>
@@ -95,11 +98,11 @@
             data-market-feed-target="assetRow"
             data-market-feed-asset-id-param="<%= asset.id %>"
             data-action="click->market-feed#selectAsset"
-            class="group cursor-pointer transition hover:bg-slate-50 <%= "bg-slate-100" if asset == market_feed_assets.first %>"
+            class="group cursor-pointer transition hover:bg-slate-50 <%= "bg-slate-100" if asset == charted_asset %>"
           >
             <td
               data-market-feed-target="assetCell"
-              class="sticky left-0 z-10 px-4 py-3 transition group-hover:bg-slate-50 <%= asset == market_feed_assets.first ? "bg-slate-100" : "bg-white" %>"
+              class="sticky left-0 z-10 px-4 py-3 transition group-hover:bg-slate-50 <%= asset == charted_asset ? "bg-slate-100" : "bg-white" %>"
             >
               <div class="flex items-center gap-2">
                 <% if allowed_to?(:manage_own_watchlist) %>
