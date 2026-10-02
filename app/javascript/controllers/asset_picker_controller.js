@@ -1,20 +1,23 @@
 import { Controller } from "@hotwired/stimulus"
+import { applyChipOverflow, observeChipOverflow } from "controllers/chip_overflow"
 
 const TOP_ENTRIES_DELAY = 500
 const SEARCH_DELAY = 2000
 
 export default class extends Controller {
-  static targets = ["query", "results", "chips", "hiddenFields"]
-  static values = { selected: Array, labels: Object, url: String }
+  static targets = ["query", "results", "chips", "chipsPanel", "hiddenFields", "expandToggle"]
+  static values = { selected: Array, labels: Object, url: String, expanded: Boolean }
 
   connect() {
     this.topEntries = null
     this.appliedSelection = this.selectionSignature()
     this.renderChips()
+    this.overflowObserver = observeChipOverflow(this.chipsTarget, () => this.refreshChipOverflow())
   }
 
   disconnect() {
     clearTimeout(this.pendingRequest)
+    this.overflowObserver.disconnect()
   }
 
   openResults() {
@@ -142,6 +145,8 @@ export default class extends Controller {
       this.hiddenFieldsTarget.appendChild(this.buildHiddenField(assetId))
     })
 
+    this.refreshChipOverflow()
+
     this.dispatch("changed", {
       detail: {
         picker: "assets",
@@ -150,6 +155,15 @@ export default class extends Controller {
       },
       prefix: "picker"
     })
+  }
+
+  toggleExpanded() {
+    this.expandedValue = !this.expandedValue
+    this.refreshChipOverflow()
+  }
+
+  refreshChipOverflow() {
+    applyChipOverflow(this.chipsPanelTarget, this.chipsTarget, this.expandToggleTarget, this.expandedValue)
   }
 
   selectionSignature() {

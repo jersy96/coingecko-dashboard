@@ -6,6 +6,7 @@
 %>
 
 <div
+  class="grid gap-y-3 md:row-span-3 md:grid-rows-subgrid"
   data-controller="asset-picker"
   data-asset-picker-selected-value="<%= selected_asset_ids.to_json %>"
   data-asset-picker-labels-value="<%= asset_picker_labels.to_json %>"
@@ -13,10 +14,21 @@
 >
   <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Assets</p>
 
-  <div data-asset-picker-target="chips" class="mt-3 flex flex-wrap gap-2"></div>
+  <div class="relative">
+    <div data-asset-picker-target="chipsPanel">
+      <div data-asset-picker-target="chips" class="flex flex-wrap content-start items-start gap-2 overflow-hidden"></div>
+      <button
+        type="button"
+        data-asset-picker-target="expandToggle"
+        data-action="asset-picker#toggleExpanded"
+        class="mt-2 hidden text-xs font-medium text-slate-500 transition hover:text-slate-900"
+      ></button>
+    </div>
+  </div>
+
   <div data-asset-picker-target="hiddenFields" class="hidden"></div>
 
-  <div class="relative mt-3">
+  <div class="relative">
     <input
       type="search"
       placeholder="Search assets"

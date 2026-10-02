@@ -95,11 +95,11 @@
             data-market-feed-target="assetRow"
             data-market-feed-asset-id-param="<%= asset.id %>"
             data-action="click->market-feed#selectAsset"
-            class="cursor-pointer transition hover:bg-slate-50 <%= "bg-slate-100" if asset == market_feed_assets.first %>"
+            class="group cursor-pointer transition hover:bg-slate-50 <%= "bg-slate-100" if asset == market_feed_assets.first %>"
           >
             <td
               data-market-feed-target="assetCell"
-              class="sticky left-0 z-10 px-4 py-3 <%= asset == market_feed_assets.first ? "bg-slate-100" : "bg-white" %>"
+              class="sticky left-0 z-10 px-4 py-3 transition group-hover:bg-slate-50 <%= asset == market_feed_assets.first ? "bg-slate-100" : "bg-white" %>"
             >
               <div class="flex items-center gap-2">
                 <% if allowed_to?(:manage_own_watchlist) %>
