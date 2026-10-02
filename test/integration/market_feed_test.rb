@@ -40,6 +40,22 @@ class MarketFeedTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "a rate limited price lookup still renders the assets, with their conversion cells empty" do
+    rate_limited = RateLimitedHttpDataSource.new(rate_limited_paths: [ "/simple/price" ])
+
+    with_http_data_source(rate_limited) do
+      get root_path
+    end
+
+    assert_response :success
+    assert_select "p", text: "Bitcoin"
+    assert_select "p", text: "Cardano"
+    assert_select "td[data-market-feed-target=conversionColumn]" do |cells|
+      assert cells.any?, "expected the conversion columns to still be rendered"
+      cells.each { |cell| assert_equal "", cell.text.strip }
+    end
+  end
+
   test "the requested currencies drive the conversion columns" do
     get root_path, params: { currencies: [ "jpy" ] }
 

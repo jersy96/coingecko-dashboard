@@ -17,9 +17,22 @@ end
 Dir[Rails.root.join("test/support/**/*.rb")].each { |support_file| require support_file }
 
 module CoinGeckoClientTestDataSource
+  attr_accessor :overridden_http_data_source
+
   def default_http_data_source
-    FakeHttpDataSource.new
+    overridden_http_data_source || FakeHttpDataSource.new
   end
 end
 
 MarketFeed::CoinGeckoClient.singleton_class.prepend(CoinGeckoClientTestDataSource)
+
+module ActiveSupport
+  class TestCase
+    def with_http_data_source(http_data_source)
+      MarketFeed::CoinGeckoClient.overridden_http_data_source = http_data_source
+      yield
+    ensure
+      MarketFeed::CoinGeckoClient.overridden_http_data_source = nil
+    end
+  end
+end
