@@ -96,7 +96,7 @@ module MarketFeed
       assets = market_entries.map do |market_entry|
         asset = build_asset(
           market_entry,
-          conversion_rate_entries[market_entry["id"]],
+          conversion_rate_entries.fetch(market_entry["id"], {}),
           currencies,
           market_entry["id"] == charted_asset_id
         )

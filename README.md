@@ -13,7 +13,7 @@ If you have `make` installed, `make up` and `make down` are the same two command
 
 The app is served at <http://localhost:3000>. `docker compose down` stops it. The container runs `db:prepare` on boot, which migrates and — on a database being created for the first time — loads the seeds, so there is no separate setup step.
 
-`COINGECKO_API_KEY` is optional. Without it the public rate limit applies, which is low enough that a page load can hit a 429 — the cache absorbs it, but the first load of the day is slower. The demo key raises the limit comfortably.
+`COINGECKO_API_KEY` is optional. A page load costs three provider requests regardless of how many assets are listed, so the public limit is usually enough; the demo key raises it comfortably. Under the public limit a cold load of many assets can still hit a 429, in which case the affected columns render empty rather than failing.
 
 ## Signing in
 
@@ -54,4 +54,5 @@ Where the assignment left room, these are the readings taken:
 - **Thresholds are global and are not applied by default.** Only persisted rows colour the table; the defaults in `MarketFeed::Metrics` prefill the admin form and nothing else. An untouched threshold therefore colours nothing.
 - **"24h Volatility"** is read as the day's range, `(high − low) / low`, not as a standard deviation of returns.
 - **Audit entries record the actor, not the owner of the subject.** An admin editing someone else's data is logged as the admin.
-- **Rate limiting is handled cache-first, not API-first.** A page load reads from the cache and only reaches CoinGecko for entries past their TTL; on a 429 the stale entry is served instead of failing. Fetching first and caching afterwards would spend six requests per load and provoke the 429 it is meant to survive.
+- **Rate limiting is handled cache-first, not API-first.** A page load reads from the cache and only reaches CoinGecko for entries past their TTL; on a 429 the stale entry is served instead of failing, and with no entry to fall back on the affected data renders empty.
+- **Price history is loaded only for the asset being charted.** The chart shows one asset at a time, so fetching every asset's history made a load cost one provider request per row. Selecting another row requests that asset's history once and keeps it client-side.
