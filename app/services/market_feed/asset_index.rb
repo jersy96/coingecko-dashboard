@@ -108,7 +108,7 @@ module MarketFeed
       thresholds = fetch_thresholds
 
       assets.index_by(&:id).transform_values do |asset|
-        thresholds.index_by(&:kind).transform_values { |threshold| threshold.status_for(asset) }
+        thresholds.index_by(&:metric).transform_values { |threshold| threshold.status_for(asset) }
       end
     end
 

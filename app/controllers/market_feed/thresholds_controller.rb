@@ -3,12 +3,12 @@ module MarketFeed
     requires_permission :manage_thresholds
 
     def index
-      @thresholds = MarketFeed::Threshold::KINDS.keys.filter_map { |kind| prefilled_threshold(kind) }
+      @thresholds = MarketFeed::Metrics.keys.filter_map { |metric| prefilled_threshold(metric) }
     end
 
     def update
       updated_threshold = threshold_repository.upsert(
-        kind: params[:id],
+        metric: params[:id],
         alert_value: params[:alert_value].presence,
         good_value: params[:good_value].presence
       )
@@ -20,8 +20,8 @@ module MarketFeed
 
     private
 
-    def prefilled_threshold(kind)
-      threshold = threshold_repository.find_or_prefill(kind)
+    def prefilled_threshold(metric)
+      threshold = threshold_repository.find_or_prefill(metric)
       return report_failure_and_discard(threshold) if threshold.failure?
 
       threshold.data
@@ -31,7 +31,7 @@ module MarketFeed
       Auditing::ActivityEntryCreate.new.call(
         user: Current.user,
         action: "threshold.updated",
-        subject: threshold.kind,
+        subject: threshold.metric,
         details: { alert_value: threshold.alert_value, good_value: threshold.good_value }
       )
     end

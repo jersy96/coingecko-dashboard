@@ -6,10 +6,10 @@ class ThresholdsTest < ActionDispatch::IntegrationTest
   end
 
   test "an admin saves a threshold and it is recorded in the activity log" do
-    patch threshold_path(MarketFeed::Threshold::VOLATILITY_ALERT), params: { alert_value: 1, good_value: 0.5 }
+    patch threshold_path(MarketFeed::Metrics::VOLATILITY_ALERT), params: { alert_value: 1, good_value: 0.5 }
 
     assert_redirected_to thresholds_path
-    assert_equal 1.0, MarketFeed::Threshold.find_by(kind: "volatility_alert").alert_value
+    assert_equal 1.0, MarketFeed::Threshold.find_by(metric: "volatility_alert").alert_value
 
     get activity_entries_path
 
@@ -17,15 +17,15 @@ class ThresholdsTest < ActionDispatch::IntegrationTest
   end
 
   test "crossed bands are rejected with a message" do
-    patch threshold_path(MarketFeed::Threshold::VOLATILITY_ALERT), params: { alert_value: 5, good_value: 8 }
+    patch threshold_path(MarketFeed::Metrics::VOLATILITY_ALERT), params: { alert_value: 5, good_value: 8 }
 
     assert_redirected_to thresholds_path
     assert_match "healthy side", flash[:alert]
-    assert_nil MarketFeed::Threshold.find_by(kind: "volatility_alert")
+    assert_nil MarketFeed::Threshold.find_by(metric: "volatility_alert")
   end
 
   test "a breached threshold paints the volatility cell" do
-    patch threshold_path(MarketFeed::Threshold::VOLATILITY_ALERT), params: { alert_value: 0.1, good_value: 0.05 }
+    patch threshold_path(MarketFeed::Metrics::VOLATILITY_ALERT), params: { alert_value: 0.1, good_value: 0.05 }
 
     get root_path
 

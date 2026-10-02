@@ -33,6 +33,16 @@ module MarketFeed
       (high_24h - low_24h) / low_24h.to_f
     end
 
+    def volatility_percent
+      return if daily_range.blank?
+
+      daily_range * 100
+    end
+
+    def daily_change_percent
+      base_conversion_rate&.change_24h&.abs
+    end
+
     private
 
     def base_conversion_rate

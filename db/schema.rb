@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_30_210000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_02_120000) do
   create_table "auditing_activity_entries", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "action", null: false
@@ -25,12 +25,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_30_210000) do
   end
 
   create_table "market_feed_thresholds", force: :cascade do |t|
-    t.string "kind", null: false
+    t.string "metric", null: false
     t.decimal "alert_value", precision: 20, scale: 4
     t.decimal "good_value", precision: 20, scale: 4
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["kind"], name: "index_market_feed_thresholds_on_kind", unique: true
+    t.index ["metric"], name: "index_market_feed_thresholds_on_metric", unique: true
   end
 
   create_table "market_feed_watchlist_items", force: :cascade do |t|

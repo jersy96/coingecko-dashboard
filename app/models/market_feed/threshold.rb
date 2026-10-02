@@ -2,58 +2,22 @@ module MarketFeed
   class Threshold < ApplicationRecord
     self.table_name = "market_feed_thresholds"
 
-    VOLATILITY_ALERT = "volatility_alert".freeze
-    DAILY_CHANGE_ALERT = "daily_change_alert".freeze
-    MARKET_CAP_FLOOR = "market_cap_floor".freeze
-
     ALERT = :alert
     GOOD = :good
     NEUTRAL = :neutral
 
-    KINDS = {
-      VOLATILITY_ALERT => {
-        column: "24h Volatility",
-        unit: "%",
-        higher_is_worse: true,
-        alert_value: 5.0,
-        good_value: 2.0
-      },
-      DAILY_CHANGE_ALERT => {
-        column: "Asset Price",
-        unit: "%",
-        higher_is_worse: true,
-        alert_value: 10.0,
-        good_value: 3.0
-      },
-      MARKET_CAP_FLOOR => {
-        column: "Market Cap",
-        unit: "USD",
-        higher_is_worse: false,
-        alert_value: 1_000_000_000.0,
-        good_value: 50_000_000_000.0
-      }
-    }.freeze
-
-    validates :kind, presence: true, uniqueness: true, inclusion: { in: KINDS.keys }
+    validates :metric, presence: true, uniqueness: true, inclusion: { in: Metrics.keys }
     validates :alert_value, numericality: { greater_than: 0 }, allow_nil: true
     validates :good_value, numericality: { greater_than: 0 }, allow_nil: true
     validate :at_least_one_value
     validate :bands_do_not_cross
 
-    def self.default_values_for(kind)
-      KINDS.fetch(kind).slice(:alert_value, :good_value)
-    end
-
-    def column
-      KINDS.fetch(kind).fetch(:column)
-    end
-
     def unit
-      KINDS.fetch(kind).fetch(:unit)
+      metric_definition.unit
     end
 
     def higher_is_worse?
-      KINDS.fetch(kind).fetch(:higher_is_worse)
+      metric_definition.higher_is_worse?
     end
 
     def status_for(asset)
@@ -68,21 +32,15 @@ module MarketFeed
     private
 
     def measurement_of(asset)
-      case kind
-      when VOLATILITY_ALERT then volatility_of(asset)
-      when DAILY_CHANGE_ALERT then daily_change_of(asset)
-      when MARKET_CAP_FLOOR then asset.market_cap
+      case metric
+      when Metrics::VOLATILITY_ALERT then asset.volatility_percent
+      when Metrics::DAILY_CHANGE_ALERT then asset.daily_change_percent
+      when Metrics::MARKET_CAP_FLOOR then asset.market_cap
       end
     end
 
-    def volatility_of(asset)
-      return if asset.daily_range.blank?
-
-      asset.daily_range * 100
-    end
-
-    def daily_change_of(asset)
-      asset.conversion_rate_in(MarketFeed::Asset::BASE_CURRENCY)&.change_24h&.abs
+    def metric_definition
+      Metrics.for(metric)
     end
 
     def alert_reached?(measurement)

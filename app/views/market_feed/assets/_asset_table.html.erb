@@ -124,10 +124,10 @@
                 </div>
               </div>
             </td>
-            <td data-market-feed-target="priceColumn" class="px-4 py-3 font-medium <%= threshold_cell_classes(threshold_statuses, asset, MarketFeed::Threshold::DAILY_CHANGE_ALERT) %>">
+            <td data-market-feed-target="priceColumn" class="px-4 py-3 font-medium <%= threshold_cell_classes(threshold_statuses, asset, MarketFeed::Metrics::DAILY_CHANGE_ALERT) %>">
               <%= number_to_currency(asset.current_price) %>
             </td>
-            <td data-market-feed-target="volatilityColumn" class="px-4 py-3 <%= threshold_cell_classes(threshold_statuses, asset, MarketFeed::Threshold::VOLATILITY_ALERT) %>">
+            <td data-market-feed-target="volatilityColumn" class="px-4 py-3 <%= threshold_cell_classes(threshold_statuses, asset, MarketFeed::Metrics::VOLATILITY_ALERT) %>">
               <%= asset.daily_range ? number_to_percentage(asset.daily_range * 100, precision: 2) : "—" %>
             </td>
             <% selected_currencies.reject { |currency| currency == MarketFeed::Asset::BASE_CURRENCY }.each do |currency| %>
@@ -135,7 +135,7 @@
                 <%= number_to_currency(asset.conversion_rate_in(currency)&.price, unit: "") %>
               </td>
             <% end %>
-            <td data-market-feed-target="marketCapColumn" class="px-4 py-3 <%= threshold_cell_classes(threshold_statuses, asset, MarketFeed::Threshold::MARKET_CAP_FLOOR) %>">
+            <td data-market-feed-target="marketCapColumn" class="px-4 py-3 <%= threshold_cell_classes(threshold_statuses, asset, MarketFeed::Metrics::MARKET_CAP_FLOOR) %>">
               <%= number_to_currency(asset.market_cap, precision: 0) %>
             </td>
           </tr>
