@@ -40,14 +40,14 @@ class MarketFeedTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "a rate limited price lookup still renders the assets, with their conversion cells empty" do
+  test "a rate limited price lookup answers 429 and still renders the assets, with their conversion cells empty" do
     rate_limited = RateLimitedHttpDataSource.new(rate_limited_paths: [ "/simple/price" ])
 
     with_http_data_source(rate_limited) do
       get root_path
     end
 
-    assert_response :success
+    assert_response :too_many_requests
     assert_select "p", text: "Bitcoin"
     assert_select "p", text: "Cardano"
     assert_select "td[data-market-feed-target=conversionColumn]" do |cells|

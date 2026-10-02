@@ -15,6 +15,17 @@ class AssetCatalogTest < ActionDispatch::IntegrationTest
     assert_equal "Bitcoin (BTC)", entries.first["label"]
   end
 
+  test "a rate limited provider answers 429 instead of a generic gateway error" do
+    rate_limited = RateLimitedHttpDataSource.new(rate_limited_paths: [ "/coins/markets" ])
+
+    with_http_data_source(rate_limited) do
+      get asset_catalog_path
+    end
+
+    assert_response :too_many_requests
+    assert_equal [], response.parsed_body["entries"]
+  end
+
   test "the catalog returns the search matches when a query is given" do
     get asset_catalog_path, params: { query: "sol" }
 

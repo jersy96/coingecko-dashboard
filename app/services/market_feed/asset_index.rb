@@ -20,6 +20,7 @@ module MarketFeed
     end
 
     def fetch(asset_ids: nil, currencies: nil, user: nil, selected_asset_id: nil)
+      @rate_limited = false
       watched_asset_ids = watchlist_asset_ids(user)
       requested_asset_ids = resolve_asset_ids(asset_ids, watched_asset_ids)
       requested_currencies = resolve_currencies(currencies)
@@ -34,7 +35,14 @@ module MarketFeed
     end
 
     def fetch_history(asset_id:)
-      fetch_price_history(asset_id)
+      market_chart = cached(price_history_cache_key(asset_id)) { request_price_history(asset_id) }
+      return market_chart if market_chart.failure?
+
+      Result.success(build_price_points(market_chart.data["prices"]))
+    end
+
+    def rate_limited?(error)
+      coin_gecko_client.rate_limited?(error)
     end
 
     private
@@ -42,27 +50,32 @@ module MarketFeed
     attr_reader :coin_gecko_client, :cache_data_source, :watchlist_item_repository, :threshold_repository
 
     def fetch_markets(coin_ids)
-      cached("markets:#{coin_ids.join(",")}:#{MarketFeed::Asset::BASE_CURRENCY}", fallback: []) do
+      cached_with_fallback("markets:#{coin_ids.join(",")}:#{MarketFeed::Asset::BASE_CURRENCY}", fallback: []) do
         coin_gecko_client.fetch_markets(coin_ids: coin_ids, currency: MarketFeed::Asset::BASE_CURRENCY)
       end
     end
 
     def fetch_simple_prices(coin_ids, currencies)
-      cached("simple_prices:#{coin_ids.join(",")}:#{currencies.join(",")}", fallback: {}) do
+      cached_with_fallback("simple_prices:#{coin_ids.join(",")}:#{currencies.join(",")}", fallback: {}) do
         coin_gecko_client.fetch_simple_prices(coin_ids: coin_ids, currencies: currencies)
       end
     end
 
-    def cached(cache_key, fallback:, &fetch_from_provider)
-      cached_payload = cache_data_source.fetch(
+    def cached(cache_key, &fetch_from_provider)
+      cache_data_source.fetch(
         key: cache_key,
         ttl_seconds: PRICES_TTL_SECONDS,
         serve_stale_if: ->(error) { coin_gecko_client.rate_limited?(error) },
         &fetch_from_provider
       )
-      return Result.success(fallback) if rate_limited_without_cache?(cached_payload)
+    end
 
-      cached_payload
+    def cached_with_fallback(cache_key, fallback:, &fetch_from_provider)
+      cached_payload = cached(cache_key, &fetch_from_provider)
+      return cached_payload unless rate_limited_without_cache?(cached_payload)
+
+      @rate_limited = true
+      Result.success(fallback)
     end
 
     def rate_limited_without_cache?(cached_payload)
@@ -110,7 +123,8 @@ module MarketFeed
           assets: assets,
           currencies: quoted_currencies(assets),
           watched_asset_ids: watched_asset_ids,
-          threshold_statuses: threshold_statuses(assets)
+          threshold_statuses: threshold_statuses(assets),
+          rate_limited: @rate_limited
         )
       )
     end
@@ -171,16 +185,24 @@ module MarketFeed
     end
 
     def fetch_price_history(asset_id)
-      market_chart = cached("price_history:#{asset_id}:#{MarketFeed::Asset::BASE_CURRENCY}:#{HISTORY_DAYS}", fallback: { "prices" => [] }) do
-        coin_gecko_client.fetch_price_history(
-          coin_id: asset_id,
-          currency: MarketFeed::Asset::BASE_CURRENCY,
-          days: HISTORY_DAYS
-        )
+      market_chart = cached_with_fallback(price_history_cache_key(asset_id), fallback: { "prices" => [] }) do
+        request_price_history(asset_id)
       end
       return market_chart if market_chart.failure?
 
       Result.success(build_price_points(market_chart.data["prices"]))
+    end
+
+    def price_history_cache_key(asset_id)
+      "price_history:#{asset_id}:#{MarketFeed::Asset::BASE_CURRENCY}:#{HISTORY_DAYS}"
+    end
+
+    def request_price_history(asset_id)
+      coin_gecko_client.fetch_price_history(
+        coin_id: asset_id,
+        currency: MarketFeed::Asset::BASE_CURRENCY,
+        days: HISTORY_DAYS
+      )
     end
 
     def build_price_points(prices)

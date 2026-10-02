@@ -4,6 +4,8 @@ import { Chart, registerables } from "chart.js"
 Chart.register(...registerables)
 
 const ASSET_ID_PLACEHOLDER = "ASSET_ID"
+const RATE_LIMITED_STATUS = 429
+const RATE_LIMITED_MESSAGE = "CoinGecko is rate limiting this dashboard. The chart will load in a moment."
 
 export default class extends Controller {
   static targets = ["priceColumn", "volatilityColumn", "conversionColumn", "marketCapColumn", "assetRow", "assetCell", "chartCanvas"]
@@ -65,13 +67,35 @@ export default class extends Controller {
     if (this.historyByAssetId.has(assetId)) return this.historyByAssetId.get(assetId)
 
     const response = await fetch(this.historyUrlFor(assetId), { headers: { Accept: "application/json" } })
+    if (response.status === RATE_LIMITED_STATUS) {
+      this.announce(RATE_LIMITED_MESSAGE)
+      return null
+    }
     if (!response.ok) return null
 
     const payload = await response.json()
     const history = this.buildHistory(payload.points)
+    if (history.prices.length === 0) return history
+
     this.historyByAssetId.set(assetId, history)
 
     return history
+  }
+
+  announce(message) {
+    document.querySelector("[data-market-feed-toast]")?.remove()
+
+    const toast = document.createElement("div")
+    toast.dataset.marketFeedToast = ""
+    toast.dataset.controller = "toast"
+    toast.className = "fixed bottom-6 right-6 z-50 flex max-w-sm items-start gap-3 rounded-md bg-slate-900 px-4 py-3 text-sm text-white shadow-lg"
+
+    const text = document.createElement("p")
+    text.className = "flex-1"
+    text.textContent = message
+    toast.appendChild(text)
+
+    document.body.appendChild(toast)
   }
 
   historyUrlFor(assetId) {

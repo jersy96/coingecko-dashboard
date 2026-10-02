@@ -12,6 +12,10 @@ module MarketFeed
       fetch_matching_entries(query)
     end
 
+    def rate_limited?(error)
+      coin_gecko_client.rate_limited?(error)
+    end
+
     private
 
     attr_reader :coin_gecko_client

@@ -11,6 +11,10 @@ module MarketFeed
       Result.success(supported_currencies.data.sort)
     end
 
+    def rate_limited?(error)
+      coin_gecko_client.rate_limited?(error)
+    end
+
     private
 
     attr_reader :coin_gecko_client
