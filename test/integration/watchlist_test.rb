@@ -177,4 +177,34 @@ class WatchlistTest < ActionDispatch::IntegrationTest
 
     assert_select "#watch-watchlist", count: 0
   end
+  test "a frame request answers only the star, so the page is not reloaded" do
+    post watchlist_items_path(asset_id: "solana"), headers: { "Turbo-Frame" => "watchlist_star_solana" }
+
+    assert_response :success
+    assert_select "turbo-frame#watchlist_star_solana"
+    assert_select "h1", count: 0
+  end
+
+  test "a frame request to unstar answers the star in its unwatched state" do
+    post watchlist_items_path(asset_id: "solana")
+
+    delete watchlist_item_path("solana"), headers: { "Turbo-Frame" => "watchlist_star_solana" }
+
+    assert_response :success
+    assert_select "turbo-frame#watchlist_star_solana form[action=?]", watchlist_items_path(asset_id: "solana")
+  end
+
+  test "starring an asset from the market feed returns to the market feed" do
+    post watchlist_items_path(asset_id: "solana"), headers: { "HTTP_REFERER" => root_path }
+
+    assert_redirected_to root_path
+  end
+
+  test "unstarring an asset from the market feed returns to the market feed" do
+    post watchlist_items_path(asset_id: "solana")
+
+    delete watchlist_item_path("solana"), headers: { "HTTP_REFERER" => root_path }
+
+    assert_redirected_to root_path
+  end
 end

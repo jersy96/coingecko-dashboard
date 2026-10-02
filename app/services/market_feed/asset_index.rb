@@ -33,7 +33,14 @@ module MarketFeed
       conversion_rates = fetch_simple_prices(requested_asset_ids, requested_currencies)
       return conversion_rates if conversion_rates.failure?
 
-      build_assets(markets.data, conversion_rates.data, requested_currencies, watched_asset_ids, selected_asset_id)
+      build_assets(
+        markets.data,
+        conversion_rates.data,
+        requested_asset_ids,
+        requested_currencies,
+        watched_asset_ids,
+        selected_asset_id
+      )
     end
 
     def fetch_history(asset_id:)
@@ -105,7 +112,7 @@ module MarketFeed
       ([ MarketFeed::Asset::BASE_CURRENCY ] + Array(currencies).reject(&:blank?)).uniq.first(MAX_CURRENCIES)
     end
 
-    def build_assets(market_entries, conversion_rate_entries, currencies, watched_asset_ids, selected_asset_id)
+    def build_assets(market_entries, conversion_rate_entries, requested_asset_ids, currencies, watched_asset_ids, selected_asset_id)
       charted_asset_id = resolve_selected_asset_id(market_entries, selected_asset_id)
 
       assets = market_entries.map do |market_entry|
@@ -124,6 +131,8 @@ module MarketFeed
         OpenStruct.new(
           assets: assets,
           currencies: quoted_currencies(assets),
+          requested_asset_ids: requested_asset_ids,
+          requested_currencies: currencies,
           watched_asset_ids: watched_asset_ids,
           threshold_statuses: threshold_statuses(assets),
           rate_limited: @rate_limited

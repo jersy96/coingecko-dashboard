@@ -40,6 +40,8 @@ export default class extends Controller {
   }
 
   async selectAsset(event) {
+    if (event.target.closest("form")) return
+
     const assetId = event.currentTarget.dataset.marketFeedAssetIdParam
     this.selectedAssetIdValue = assetId
     this.highlightSelectedRow(assetId)

@@ -1,8 +1,8 @@
 <%
   asset_picker_labels = market_feed_assets.each_with_object({}) do |asset, labels|
-    labels[asset.id] = "#{asset.name} (#{asset.symbol})"
+    labels[asset.id] = "#{asset.name} (#{asset.id})"
   end
-  selected_asset_ids = market_feed_assets.map(&:id)
+  selected_asset_ids = requested_asset_ids.presence || market_feed_assets.map(&:id)
 %>
 
 <div

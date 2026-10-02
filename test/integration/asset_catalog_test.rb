@@ -12,7 +12,7 @@ class AssetCatalogTest < ActionDispatch::IntegrationTest
     entries = response.parsed_body["entries"]
     assert_equal 4, entries.size
     assert_equal "bitcoin", entries.first["id"]
-    assert_equal "Bitcoin (BTC)", entries.first["label"]
+    assert_equal "Bitcoin (bitcoin)", entries.first["label"]
   end
 
   test "a rate limited provider answers 429 instead of a generic gateway error" do

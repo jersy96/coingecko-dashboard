@@ -15,7 +15,7 @@ module MarketFeed
       report_failure(added_item) if added_item.failure?
       record_activity("watchlist_item.added", params[:asset_id]) if added_item.success?
 
-      redirect_to watchlist_items_path(owner_scope)
+      respond_with_star(params[:asset_id], watched: added_item.success?)
     end
 
     def destroy
@@ -23,10 +23,18 @@ module MarketFeed
       report_failure(removed_items) if removed_items.failure?
       record_activity("watchlist_item.removed", params[:id]) if removed_items.success?
 
-      redirect_to watchlist_items_path(owner_scope)
+      respond_with_star(params[:id], watched: removed_items.failure?)
     end
 
     private
+
+    def respond_with_star(asset_id, watched:)
+      unless turbo_frame_request?
+        return redirect_back_or_to watchlist_items_path(owner_scope)
+      end
+
+      render partial: "market_feed/assets/watchlist_star", locals: { asset_id: asset_id, watched: watched }
+    end
 
     def record_activity(action, asset_id)
       Auditing::ActivityEntryCreate.new.call(

@@ -48,6 +48,7 @@ class MarketFeedTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :too_many_requests
+    assert_select "[data-controller=toast]", text: /rate limiting/
     assert_select "p", text: "Bitcoin"
     assert_select "p", text: "Cardano"
     assert_select "td[data-market-feed-target=conversionColumn]" do |cells|
@@ -67,6 +68,20 @@ class MarketFeedTest < ActionDispatch::IntegrationTest
     assert_operator css_select("thead th[data-market-feed-target=conversionColumn]").size,
                     :<=,
                     MarketFeed::AssetIndex::MAX_CURRENCIES
+  end
+
+  test "a rate limited feed keeps the requested selection in the pickers" do
+    rate_limited = RateLimitedHttpDataSource.new(rate_limited_paths: [ "/coins/markets" ])
+
+    with_http_data_source(rate_limited) do
+      get root_path, params: { asset_ids: [ "bitcoin", "solana" ], currencies: [ "jpy" ] }
+    end
+
+    assert_response :too_many_requests
+    assert_select "div[data-controller=asset-picker][data-asset-picker-selected-value=?]",
+                  [ "bitcoin", "solana" ].to_json
+    assert_select "div[data-controller=currency-picker][data-currency-picker-selected-value=?]",
+                  [ "usd", "jpy" ].to_json
   end
 
   test "the requested currencies drive the conversion columns" do

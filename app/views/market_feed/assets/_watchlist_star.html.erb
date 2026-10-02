@@ -1,0 +1,14 @@
+<%= turbo_frame_tag "watchlist_star_#{asset_id}" do %>
+  <% if watched %>
+    <%= button_to "★",
+          watchlist_item_path(asset_id),
+          method: :delete,
+          title: "Remove from watchlist",
+          class: "text-base leading-none text-amber-500" %>
+  <% else %>
+    <%= button_to "☆",
+          watchlist_items_path(asset_id: asset_id),
+          title: "Add to watchlist",
+          class: "text-base leading-none text-slate-300 transition hover:text-amber-500" %>
+  <% end %>
+<% end %>

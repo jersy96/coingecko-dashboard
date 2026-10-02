@@ -4,6 +4,7 @@ import { announce } from "controllers/toast_message"
 
 const TOP_ENTRIES_DELAY = 500
 const SEARCH_DELAY = 2000
+const LABELS_STORAGE_KEY = "asset-picker-labels"
 const MAX_ASSETS = 10
 const MAX_ASSETS_MESSAGE = `You can compare up to ${MAX_ASSETS} assets at a time. Remove one to add another.`
 
@@ -14,6 +15,8 @@ export default class extends Controller {
   connect() {
     this.topEntries = null
     this.appliedSelection = this.selectionSignature()
+    this.labelsValue = { ...this.rememberedLabels(), ...this.labelsValue }
+    this.rememberLabels()
     this.renderChips()
     this.overflowObserver = observeChipOverflow(this.chipsTarget, () => this.refreshChipOverflow())
   }
@@ -109,6 +112,24 @@ export default class extends Controller {
       this.labelsValue = { ...this.labelsValue, [entry.id]: entry.label }
       this.resultsTarget.appendChild(option)
     })
+
+    this.rememberLabels()
+  }
+
+  rememberedLabels() {
+    try {
+      return JSON.parse(localStorage.getItem(LABELS_STORAGE_KEY)) || {}
+    } catch {
+      return {}
+    }
+  }
+
+  rememberLabels() {
+    try {
+      localStorage.setItem(LABELS_STORAGE_KEY, JSON.stringify(this.labelsValue))
+    } catch {
+      return
+    }
   }
 
   toggleEntry(event) {

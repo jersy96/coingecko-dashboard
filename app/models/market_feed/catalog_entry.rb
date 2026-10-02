@@ -9,7 +9,7 @@ module MarketFeed
     end
 
     def label
-      "#{name} (#{symbol})"
+      "#{name} (#{id})"
     end
   end
 end

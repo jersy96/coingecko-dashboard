@@ -22,7 +22,7 @@
   <h2 class="text-xl font-semibold text-slate-900">Market Feed</h2>
   <p class="mt-1 text-sm text-slate-500">Live crypto asset metrics from CoinGecko.</p>
 
-  <%= render "pickers", market_feed_assets: market_feed_assets, selected_currencies: selected_currencies, supported_currencies: supported_currencies %>
+  <%= render "pickers", market_feed_assets: market_feed_assets, selected_currencies: selected_currencies, supported_currencies: supported_currencies, requested_asset_ids: requested_asset_ids, requested_currencies: requested_currencies %>
 
   <fieldset class="mt-6 flex flex-wrap gap-4 rounded-md border border-slate-200 bg-white p-4">
     <legend class="px-1 text-xs font-medium uppercase tracking-wide text-slate-400">Metrics</legend>
@@ -106,20 +106,7 @@
             >
               <div class="flex items-center gap-2">
                 <% if allowed_to?(:manage_own_watchlist) %>
-                  <% if watched_asset_ids.include?(asset.id) %>
-                    <%= button_to "★",
-                          watchlist_item_path(asset.id),
-                          method: :delete,
-                          form: { data: { turbo_confirm: "Remove #{asset.name} from your watchlist?" } },
-                          title: "Remove from watchlist",
-                          class: "text-base leading-none text-amber-500" %>
-                  <% else %>
-                    <%= button_to "☆",
-                          watchlist_items_path(asset_id: asset.id),
-                          form: { data: { turbo: false } },
-                          title: "Add to watchlist",
-                          class: "text-base leading-none text-slate-300 transition hover:text-amber-500" %>
-                  <% end %>
+                  <%= render "market_feed/assets/watchlist_star", asset_id: asset.id, watched: watched_asset_ids.include?(asset.id) %>
                 <% end %>
                 <div>
                   <p class="font-medium text-slate-900"><%= asset.name %></p>

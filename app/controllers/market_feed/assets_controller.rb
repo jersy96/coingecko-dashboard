@@ -1,5 +1,7 @@
 module MarketFeed
   class AssetsController < ApplicationController
+    RATE_LIMITED_ALERT = "CoinGecko is rate limiting this dashboard. Some data is missing from this page.".freeze
+
     requires_permission :view_market_feed
 
     def index
@@ -13,11 +15,16 @@ module MarketFeed
 
       @market_feed_assets = asset_index_result.data&.assets || []
       @selected_currencies = asset_index_result.data&.currencies || []
+      @requested_asset_ids = asset_index_result.data&.requested_asset_ids || []
+      @requested_currencies = asset_index_result.data&.requested_currencies || []
       @supported_currencies = fetch_supported_currencies
       @watched_asset_ids = asset_index_result.data&.watched_asset_ids || []
       @threshold_statuses = asset_index_result.data&.threshold_statuses || {}
 
-      render status: :too_many_requests if rate_limited?(asset_index_result)
+      return unless rate_limited?(asset_index_result)
+
+      flash.now[:alert] = RATE_LIMITED_ALERT
+      render status: :too_many_requests
     end
 
     private
